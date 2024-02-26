@@ -14384,15 +14384,24 @@ async function run() {
           for (const path of filesToReplicate) {
             const targetContentsBefore = await getFile(myOctokit, owner, repo.name, defaultBranch, path);
             const sourceContents = await readFile(process.cwd() + '/' + path);
+
+            core.debug(`DEBUG: sourceContents of ${path} file`);
+            core.debug(sourceContents.toString());
+            core.debug(`DEBUG: targetContentsBefore of ${path} file`);
+            core.debug(targetContentsBefore.toString());
             
             if (sourceContents.toString() !== targetContentsBefore.toString()) {
-              fileChanges["additions"] = encodeAdditions(filesToReplicate, destination);
+              if (fileChanges["additions"] == null)
+                fileChanges["additions"] = [];
+              fileChanges["additions"].push(encodeAdditions(filesToReplicate, destination));
             }
           }
 
           for (const path in filesToRemove) {
             if (await fileExists(myOctokit, owner, repo.name, defaultBranch, path)) {
-              fileChanges["deletions"] = encodeDeletions(filesToRemove, destination);
+              if (fileChanges["deletions"] == null)
+                fileChanges["deletions"] = [];
+              fileChanges["deletions"].push(encodeDeletions(filesToRemove, destination));
             }
           }
 
