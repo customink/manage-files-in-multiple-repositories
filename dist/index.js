@@ -229,9 +229,6 @@ async function commitFiles(octokit, owner, repo, branch, fileChanges, commitMess
   let tries_left = tries;
   let response = null;
 
-  core.info(`Waiting 5sec before commit creation`);
-  await sleep(5000);
-  
   while (tries_left > 0) {
     try {
       core.info(`Committing changes to the ${repo} repository. try #${tries - tries_left + 1}/${tries}`);
@@ -250,10 +247,6 @@ async function commitFiles(octokit, owner, repo, branch, fileChanges, commitMess
           expectedHeadOid: headOid
         }
       }
-
-      core.debug(`DEBUG: Commit request`);
-      core.debug(createCommitQuery);
-      core.debug(JSON.stringify(inputs, null, 2));
 
       response = await octokit.graphql(createCommitQuery, inputs)
 
@@ -14389,7 +14382,9 @@ async function run() {
     if (isWorkflowDispatch && repoNameManual) {
       reposList.push(await getRepo(myOctokit, owner, repoNameManual));
     } else {
-      reposList = await getReposList(myOctokit, owner);
+      // // TODO: just for debugging
+      reposList.push(await getRepo(myOctokit, owner, 'workflow-source'));
+      // reposList = await getReposList(myOctokit, owner);
     }
 
     /*
@@ -14419,21 +14414,13 @@ async function run() {
 
           for (const path of filesToReplicate) {
             const targetFileBefore = await getFile(myOctokit, owner, repo.name, defaultBranch, path);
-
-            core.debug(`DEBUG: targetFileBefore keys: ${Object.keys(targetFileBefore)}`);
-
-            const targetContentsBefore = Buffer.from(targetFileBefore.data.content, 'base64').toString();
+            const targetContentsBefore = (!targetFileBefore) ? null : Buffer.from(targetFileBefore.data.content, 'base64').toString();
             const sourceContents = await readFile(process.cwd() + '/' + path);
 
-            core.debug(`DEBUG: sourceContents of ${path} file`);
-            core.debug(sourceContents.toString());
-            core.debug(`DEBUG: targetContentsBefore of ${path} file`);
-            core.debug(targetContentsBefore.toString());
-            
-            if (sourceContents.toString() !== targetContentsBefore.toString()) {
+            if (!targetContentsBefore || sourceContents.toString() !== targetContentsBefore.toString()) {
               if (fileChanges["additions"] == null)
                 fileChanges["additions"] = [];
-              fileChanges["additions"].push(encodeAdditions(filesToReplicate, destination));
+              fileChanges["additions"] = fileChanges["additions"].concat(encodeAdditions(filesToReplicate, destination));
             }
           }
 
@@ -14441,7 +14428,7 @@ async function run() {
             if (await fileExists(myOctokit, owner, repo.name, defaultBranch, path)) {
               if (fileChanges["deletions"] == null)
                 fileChanges["deletions"] = [];
-              fileChanges["deletions"].push(encodeDeletions(filesToRemove, destination));
+              fileChanges["deletions"] = fileChanges["deletions"].concat(encodeDeletions(filesToRemove, destination));
             }
           }
 
