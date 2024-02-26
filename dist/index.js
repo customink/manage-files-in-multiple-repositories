@@ -14382,7 +14382,11 @@ async function run() {
           let fileChanges = {};
 
           for (const path of filesToReplicate) {
-            const targetContentsBefore = await getFile(myOctokit, owner, repo.name, defaultBranch, path);
+            const targetFileBefore = await getFile(myOctokit, owner, repo.name, defaultBranch, path);
+
+            core.debug(`DEBUG: targetFileBefore keys: ${Object.keys(targetFileBefore)}`);
+            
+            const targetContentsBefore = Buffer.from(targetFileBefore.content, 'base64');
             const sourceContents = await readFile(process.cwd() + '/' + path);
 
             core.debug(`DEBUG: sourceContents of ${path} file`);
