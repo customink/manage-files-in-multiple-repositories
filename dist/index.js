@@ -5,7 +5,6 @@
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(2186);
-const { containsDeleteBranchCommand } = __nccwpck_require__(342);
 
 module.exports = { getCommitFiles, getReposList, createPr, getRepo, createBranch, getFile, fileExists, commitFiles };
 
@@ -14127,14 +14126,6 @@ function wrappy (fn, cb) {
     return ret
   }
 }
-
-
-/***/ }),
-
-/***/ 342:
-/***/ ((module) => {
-
-module.exports = eval("require")("../dist");
 
 
 /***/ }),
