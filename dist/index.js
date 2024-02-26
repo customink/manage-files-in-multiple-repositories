@@ -215,9 +215,6 @@ async function fileExists(octokit, owner, repo, ref, path) {
 }
 
 async function commitFiles(octokit, owner, repo, branch, fileChanges, commitMessage) {
-  core.info(`Committing changes to the ${repo} repository`);
-
-
   const createCommitQuery = `
     mutation($input: CreateCommitOnBranchInput!) {
       createCommitOnBranch(input: $input) {
@@ -228,11 +225,17 @@ async function commitFiles(octokit, owner, repo, branch, fileChanges, commitMess
     }
   `;
 
-  let tries = 10;
+  let tries = 10
+  let tries_left = tries;
   let response = null;
 
-  while (tries > 0) {
+  core.info(`Waiting 5sec before commit creation`);
+  await sleep(5000);
+  
+  while (tries_left > 0) {
     try {
+      core.info(`Committing changes to the ${repo} repository. try #${tries - tries_left + 1}/${tries}`);
+
       const r = await getRefOidAndRepoId(octokit, owner, repo, branch);
       const headOid = r[0];
 
@@ -265,12 +268,14 @@ async function commitFiles(octokit, owner, repo, branch, fileChanges, commitMess
     } catch (error) {
       if (error.message === 'Response is null') {
         await sleep(1000);
-        tries--;
+        tries_left--;
       } else {
         throw new Error(`Unable to commit changes to the ${repo} repository: ${  error}`);
       }
     }
   }
+
+  throw new Error(`Unable to commit changes to the ${repo} repository after ${tries} tries. Github never returned the commit url`);
 
   function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
