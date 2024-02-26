@@ -7,18 +7,6 @@ inputs:
       It cannot be the default GitHub Actions token GITHUB_TOKEN. GitHub Action token's permissions are limited to the repository that contains your workflows.
       Provide token of the user that has rights to push to the repos that this action is suppose to update. 
     required: true
-  committer_username:
-    description: >
-      The username (not display name) of the committer that will be used in the commit of changes in the workflow file in specific repository.
-      In the format `web-flow`.
-    default: web-flow
-    required: false
-  committer_email:
-    description: >
-      The email of the committer that will be used in the commit of changes in the workflow file in specific repository.
-      In the format `noreply@github.com`.
-    default: noreply@github.com
-    required: false
   commit_message:
     description: >
       It is used as a commit message when pushing changes with global workflows. 
